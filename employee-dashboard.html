@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EMP Directory — Oracle APEX</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --surface: #111318;
+      --surface2: #181c24;
+      --border: #232830;
+      --accent: #e8c84a;
+      --accent2: #4af0c8;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --danger: #f87171;
+      --president: #e8c84a;
+      --manager: #4af0c8;
+      --analyst: #a78bfa;
+      --salesman: #fb923c;
+      --clerk: #60a5fa;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background grid ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(232,200,74,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,200,74,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 0 20px;
+      margin-bottom: 40px;
+    }
+    .header-inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .logo-block { display: flex; flex-direction: column; gap: 4px; }
+    .logo-eyebrow {
+      font-size: 10px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1;
+      color: var(--text);
+    }
+    h1 span { color: var(--accent); }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .stat-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .stat-chip strong { color: var(--accent2); font-size: 16px; display: block; letter-spacing: 0; margin-bottom: 2px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(232,200,74,.06);
+    }
+
+    .reload-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 10px 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .reload-btn:hover { background: #f0d860; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(232,200,74,.25); }
+    .reload-btn:active { transform: translateY(0); }
+    .reload-btn svg { transition: transform .5s; }
+    .reload-btn.loading svg { animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Status bar ── */
+    #status-bar {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      height: 16px;
+      letter-spacing: .05em;
+      transition: color .3s;
+    }
+    #status-bar.error { color: var(--danger); }
+    #status-bar.ok { color: var(--accent2); }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(0,0,0,.5);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead tr {
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    th {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 14px 16px;
+      text-align: left;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      transition: color .2s;
+    }
+    th:hover { color: var(--text); }
+    th.sorted { color: var(--accent); }
+    th .sort-arrow { margin-left: 4px; opacity: .5; }
+    th.sorted .sort-arrow { opacity: 1; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+      opacity: 0;
+      animation: rowIn .3s forwards;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    td {
+      padding: 14px 16px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .empno { color: var(--muted); font-size: 11px; }
+    .ename {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: .02em;
+    }
+
+    .job-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      border: 1px solid currentColor;
+    }
+    .job-PRESIDENT { color: var(--president); background: rgba(232,200,74,.08); }
+    .job-MANAGER   { color: var(--manager);   background: rgba(74,240,200,.08); }
+    .job-ANALYST   { color: var(--analyst);   background: rgba(167,139,250,.08); }
+    .job-SALESMAN  { color: var(--salesman);  background: rgba(251,146,60,.08); }
+    .job-CLERK     { color: var(--clerk);     background: rgba(96,165,250,.08); }
+
+    .dept-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .dept-10 { border-color: #4a9ef0; color: #4a9ef0; background: rgba(74,158,240,.07); }
+    .dept-20 { border-color: #c084fc; color: #c084fc; background: rgba(192,132,252,.07); }
+    .dept-30 { border-color: var(--accent2); color: var(--accent2); background: rgba(74,240,200,.07); }
+
+    .sal { color: var(--accent); font-variant-numeric: tabular-nums; }
+    .comm { color: var(--accent2); font-variant-numeric: tabular-nums; }
+    .null-val { color: #2d333b; }
+
+    /* ── Loading skeleton ── */
+    .skeleton-row td { padding: 16px; }
+    .skel {
+      height: 14px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── Empty / error state ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 13px; }
+
+    /* ── Footer ── */
+    footer {
+      margin: 40px 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #2d333b;
+    }
+    footer a { color: #3d454e; text-decoration: none; }
+    footer a:hover { color: var(--muted); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .hide-mobile { display: none; }
+      td, th { padding: 12px 10px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-block">
+        <span class="logo-eyebrow">Oracle APEX · EMP Module</span>
+        <h1>Employee <span>Directory</span></h1>
+      </div>
+      <div class="header-meta">
+        <div class="stat-chip"><strong id="stat-count">—</strong>Employees</div>
+        <div class="stat-chip"><strong id="stat-depts">—</strong>Departments</div>
+        <div class="stat-chip"><strong id="stat-updated">—</strong>Last Fetched</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="filters">
+      <button class="filter-btn active" data-filter="ALL">All</button>
+      <button class="filter-btn" data-filter="PRESIDENT">President</button>
+      <button class="filter-btn" data-filter="MANAGER">Manager</button>
+      <button class="filter-btn" data-filter="ANALYST">Analyst</button>
+      <button class="filter-btn" data-filter="SALESMAN">Salesman</button>
+      <button class="filter-btn" data-filter="CLERK">Clerk</button>
+    </div>
+    <button class="reload-btn" id="reloadBtn" onclick="fetchEmployees()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5"/>
+      </svg>
+      Reload Data
+    </button>
+  </div>
+
+  <div id="status-bar">Initializing…</div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="emp-table">
+      <thead>
+        <tr>
+          <th data-col="empno">Emp# <span class="sort-arrow">↕</span></th>
+          <th data-col="ename">Name <span class="sort-arrow">↕</span></th>
+          <th data-col="job">Role <span class="sort-arrow">↕</span></th>
+          <th data-col="deptno">Dept <span class="sort-arrow">↕</span></th>
+          <th data-col="sal" class="hide-mobile">Salary <span class="sort-arrow">↕</span></th>
+          <th data-col="comm" class="hide-mobile">Commission <span class="sort-arrow">↕</span></th>
+          <th data-col="hiredate" class="hide-mobile">Hire Date <span class="sort-arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="emp-tbody"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>Oracle APEX · EMP_MODULE REST API</span>
+    <a href="https://github.com" target="_blank">↗ GitHub Pages</a>
+  </footer>
+</div>
+
+<script>
+  const API = 'https://oracleapex.com/ords/praveen_9898/EMP_MODULE/get_employee_data';
+  const DEPT_NAMES = { 10: 'ACCOUNTING', 20: 'RESEARCH', 30: 'SALES', 40: 'OPERATIONS' };
+
+  let allData = [];
+  let currentFilter = 'ALL';
+  let sortCol = null;
+  let sortAsc = true;
+
+  /* ── Fetch ── */
+  async function fetchEmployees() {
+    const btn = document.getElementById('reloadBtn');
+    const status = document.getElementById('status-bar');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    status.className = '';
+    status.textContent = 'Fetching data from Oracle APEX…';
+    showSkeleton();
+
+    try {
+      const res = await fetch(API);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      allData = json.items || [];
+      renderStats(allData);
+      render(allData);
+      const now = new Date();
+      status.className = 'ok';
+      status.textContent = `✓ ${allData.length} records loaded · ${now.toLocaleTimeString()}`;
+      document.getElementById('stat-updated').textContent = now.toLocaleTimeString();
+    } catch (err) {
+      status.className = 'error';
+      status.textContent = `✗ Failed to fetch: ${err.message}`;
+      showError(err.message);
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Stats ── */
+  function renderStats(data) {
+    document.getElementById('stat-count').textContent = data.length;
+    const depts = new Set(data.map(e => e.deptno)).size;
+    document.getElementById('stat-depts').textContent = depts;
+  }
+
+  /* ── Render table ── */
+  function render(data) {
+    const filtered = currentFilter === 'ALL' ? data : data.filter(e => e.job === currentFilter);
+    const sorted = sortData(filtered);
+    const tbody = document.getElementById('emp-tbody');
+    if (!sorted.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">◎</div><p>No employees found</p></div></td></tr>`; return; }
+
+    tbody.innerHTML = sorted.map((e, i) => `
+      <tr style="animation-delay:${i * 30}ms">
+        <td class="empno">${e.empno}</td>
+        <td class="ename">${e.ename}</td>
+        <td><span class="job-badge job-${e.job}">${e.job}</span></td>
+        <td><span class="dept-pill dept-${e.deptno}">${e.deptno} · ${DEPT_NAMES[e.deptno] || '—'}</span></td>
+        <td class="sal hide-mobile">$${Number(e.sal).toLocaleString()}</td>
+        <td class="hide-mobile">${e.comm != null ? `<span class="comm">$${Number(e.comm).toLocaleString()}</span>` : '<span class="null-val">—</span>'}</td>
+        <td class="hide-mobile">${formatDate(e.hiredate)}</td>
+      </tr>`).join('');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '<span class="null-val">—</span>';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  /* ── Sort ── */
+  function sortData(data) {
+    if (!sortCol) return data;
+    return [...data].sort((a, b) => {
+      let va = a[sortCol], vb = b[sortCol];
+      if (va == null) va = sortAsc ? Infinity : -Infinity;
+      if (vb == null) vb = sortAsc ? Infinity : -Infinity;
+      if (typeof va === 'string') return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+      return sortAsc ? va - vb : vb - va;
+    });
+  }
+
+  /* ── Skeleton ── */
+  function showSkeleton() {
+    const tbody = document.getElementById('emp-tbody');
+    tbody.innerHTML = Array(6).fill(0).map(() => `
+      <tr class="skeleton-row">
+        <td><div class="skel" style="width:44px"></div></td>
+        <td><div class="skel" style="width:90px"></div></td>
+        <td><div class="skel" style="width:80px"></div></td>
+        <td><div class="skel" style="width:110px"></div></td>
+        <td class="hide-mobile"><div class="skel" style="width:60px"></div></td>
+        <td class="hide-mobile"><div class="skel" style="width:60px"></div></td>
+        <td class="hide-mobile"><div class="skel" style="width:90px"></div></td>
+      </tr>`).join('');
+  }
+
+  function showError(msg) {
+    document.getElementById('emp-tbody').innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">⚠</div><p>Could not load data: ${msg}</p></div></td></tr>`;
+  }
+
+  /* ── Filter buttons ── */
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      render(allData);
+    });
+  });
+
+  /* ── Sort headers ── */
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortCol === col) { sortAsc = !sortAsc; }
+      else { sortCol = col; sortAsc = true; }
+      document.querySelectorAll('th').forEach(t => t.classList.remove('sorted'));
+      th.classList.add('sorted');
+      th.querySelector('.sort-arrow').textContent = sortAsc ? '↑' : '↓';
+      render(allData);
+    });
+  });
+
+  /* ── Init ── */
+  fetchEmployees();
+</script>
+</body>
+</html>
